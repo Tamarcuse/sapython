@@ -2,6 +2,8 @@ import csv
 import yahoofinancials as yf
 import pandas
 from statsmodels.formula.api import ols
+import matplotlib.pyplot as plt
+
 
 COLUMNS = {
   "firm": 0,
@@ -182,7 +184,79 @@ def append_data(firm, start, end, alpha, beta, sharpe_ratio, treynor_ratio, annu
   treynors.append(treynor_ratio)
   annuals.append(annual_return)
 
-with open('playground.csv', 'r', newline='') as csvfile:
+def create_prices_figure(df):
+  '''
+  Create prices figure where x is date and y is price
+
+  Parameters
+  ----------
+  df : firm dataframe
+  '''
+  ax = df.plot(x='date', y='firm', kind='line', linestyle='-')
+  ax.set_title("Stock Prices")
+  ax.set_ylabel("Price ($)")
+
+def create_returns_figure(df):
+  '''
+  Create returns figure where x is date and y is return
+
+  Parameters
+  ----------
+  df : firm dataframe
+  '''
+  ax = df.plot(x='date', y='r_firm', kind='line', linestyle='-')
+  ax.set_title("Histogram of stock returns")
+  ax.set_ylabel("Frequency")
+
+def create_returns_histogram(df):
+  '''
+  Create returns histogram
+
+  Parameters
+  ----------
+  df : firm dataframe
+  '''
+  fig, ax=plt.subplots(figsize=(16,10))
+  ax.hist(df['r_firm'], bins=40)
+  ax.set_title('Histogram of stock returns')
+  ax.grid(axis='y')
+  ax.set_xlabel('Returns')
+  ax.set_ylabel('Frequency')
+
+def create_adjusted_market_figure(df, alpha, beta):
+  '''
+  Create adjusted market returns figure
+
+  Parameters
+  ----------
+  df : firm dataframe
+  '''
+  fig, ax=plt.subplots(figsize=(16,10))
+  x_difference = df['r_market'] - df['r_rf']
+  y_difference = df['r_firm'] - df['r_rf']
+  ax.plot(x_difference, beta * x_difference + alpha, color='red', linestyle='--')
+  ax.scatter(x_difference, y_difference, marker='o', s = 5)
+  ax.grid(axis='y')
+  ax.set_title("Returns Vs. market returns")
+  ax.set_ylabel("Adjusted returns")
+  ax.set_xlabel("Adjusted market returns")
+  fig.savefig('scatter_regression_plot.jpg')
+
+def create_figures(df, alpha, beta):
+  '''
+  Create 4 figures for a specific firm
+
+  Parameters
+  ----------
+  df : firm dataframe
+  '''
+  create_prices_figure(df)
+  create_returns_figure(df)
+  create_returns_histogram(df)
+  create_adjusted_market_figure(df, alpha, beta)
+
+
+with open('firms_dates.csv', 'r', newline='') as csvfile:
   csv_reader = csv.reader(csvfile)
   # skip first row (headers)
   next(csv_reader)
@@ -217,6 +291,8 @@ with open('playground.csv', 'r', newline='') as csvfile:
       alpha, beta, sharpe_ratio, treynor_ratio, annual_return
     )
 
+    create_figures(df, alpha, beta)
+
 final_data = {
   'firms': firms,
   'start_dates': start_dates,
@@ -230,6 +306,3 @@ final_data = {
 
 final_df = pandas.DataFrame(final_data)
 final_df.to_csv("results.csv")
-
-
-
