@@ -15,6 +15,19 @@ US_BONDS_TICKER = "^IRX"
 UNUSED_COLUMNS = ['date','high','low','open','close','volume']
 
 def get_daily_price_data(ticker, start, end):
+  '''
+  Get daily price data for specific stock between start and end dates
+
+  Parameters
+  ----------
+  ticker : Stock identifier
+  start : Start date of the time range
+  end : End date of the time range
+
+  Returns
+  -------
+  The YahooFinancials historical price data of the stock in the given dates
+  '''
   return yf.YahooFinancials(ticker).get_historical_price_data(
     start_date=start,
     end_date=end,
@@ -22,6 +35,19 @@ def get_daily_price_data(ticker, start, end):
   )
 
 def create_dataframe(price_data, ticker, price_column):
+  '''
+  Creates pandas dataframe from given data, removes unused columns, formatting dates and renaming specific columns
+
+  Parameters
+  ----------
+  price_data : YahooFinancials historical price data
+  ticker : Stock identifier
+  price_column : Name for the price coloun of the stock
+
+  Returns
+  -------
+  A pandas dataframe
+  '''
   df = pandas.DataFrame(price_data[ticker]['prices'])
   df = df.dropna()
   df = df.drop(UNUSED_COLUMNS, axis=1)
@@ -31,28 +57,88 @@ def create_dataframe(price_data, ticker, price_column):
   return df
 
 def create_price_data_frame(price_data, ticker, price_column):
+  '''
+  Creates pandas dataframe by calling create_dataframe and adding a return column by calculating the percent change
+
+  Parameters
+  ----------
+  price_data : YahooFinancials historical price data
+  ticker : Stock identifier
+  price_column : Name for the price coloun of the stock
+
+  Returns
+  -------
+  A pandas dataframe with a return column
+  '''
   df = create_dataframe(price_data, ticker, price_column)
   df["r_{}".format(price_column)]=df[price_column].pct_change()
   return df
 
 def create_return_data_frame(price_data, ticker, price_column):
+  '''
+  Creates pandas dataframe by calling create_dataframe and adding a return column by changing the return from yearly return to daily return
+
+  Parameters
+  ----------
+  price_data : YahooFinancials historical price data
+  ticker : Stock identifier
+  price_column : Name for the price coloun of the stock
+
+  Returns
+  -------
+  A pandas dataframe with a return column
+  '''
   df = create_dataframe(price_data, ticker, price_column)
   df[price_column]=df[price_column]/100
   df["r_{}".format(price_column)]=((1+df[price_column]) ** (1/365)) - 1
   return df
 
 def calc_sharpe(price_data):
+  '''
+  Calculate sharpe_ratio for a specific firm
+
+  Parameters
+  ----------
+  price_data : YahooFinancials historical price data
+
+  Returns
+  -------
+  sharpe ratio value
+  '''
   r_firm_avg = price_data['r_firm'].mean()
   r_rf_avg = price_data['r_rf'].mean()
   r_firm_std_dev = price_data['r_firm'].std()
   return (r_firm_avg - r_rf_avg) / r_firm_std_dev
 
 def calc_treynor(price_data, beta):
+  '''
+  Calculate treynor_ratio for a specific firm
+
+  Parameters
+  ----------
+  price_data : YahooFinancials historical price data
+  beta : beta value of the OLS regression
+
+  Returns
+  -------
+  treynor ratio value
+  '''
   r_firm_avg = price_data['r_firm'].mean()
   r_rf_avg = price_data['r_rf'].mean()
   return (r_firm_avg - r_rf_avg) / beta
 
 def calc_yearly_return(df):
+  '''
+  Calculate yearly return for a specific firm
+
+  Parameters
+  ----------
+  df : YahooFinancials historical price data
+
+  Returns
+  -------
+  yearly return value
+  '''
   first_value = df.iloc[0]['firm']
   last_value = df.iloc[-1]['firm']
   r_total = (last_value - first_value) - 1
