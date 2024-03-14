@@ -14,6 +14,15 @@ SNP_TICKER = "SPY"
 US_BONDS_TICKER = "^IRX"
 UNUSED_COLUMNS = ['date','high','low','open','close','volume']
 
+firms = []
+start_dates = []
+end_dates = []
+alphas = []
+betas = []
+sharpes = []
+treynors = []
+annuals = []
+
 def get_daily_price_data(ticker, start, end):
   '''
   Get daily price data for specific stock between start and end dates
@@ -76,7 +85,7 @@ def create_price_data_frame(price_data, ticker, price_column):
 
 def create_return_data_frame(price_data, ticker, price_column):
   '''
-  Creates pandas dataframe by calling create_dataframe and adding a return column by changing the return from yearly return to daily return
+  Creates pandas dataframe by calling create_dataframe and adding a return column by changing the return from annual return to daily return
 
   Parameters
   ----------
@@ -127,9 +136,9 @@ def calc_treynor(price_data, beta):
   r_rf_avg = price_data['r_rf'].mean()
   return (r_firm_avg - r_rf_avg) / beta
 
-def calc_yearly_return(df):
+def calc_annual_return(df):
   '''
-  Calculate yearly return for a specific firm
+  Calculate annual return for a specific firm
 
   Parameters
   ----------
@@ -137,7 +146,7 @@ def calc_yearly_return(df):
 
   Returns
   -------
-  yearly return value
+  annual return value
   '''
   first_value = df.iloc[0]['firm']
   last_value = df.iloc[-1]['firm']
@@ -149,6 +158,29 @@ def calc_yearly_return(df):
 
   return ((1 + r_total) ** (365 / num_of_days)) - 1
 
+def append_data(firm, start, end, alpha, beta, sharpe_ratio, treynor_ratio, annual_return):
+  '''
+  appends output values to their designated arrays
+
+  Parameters
+  ----------
+  firm : firm name
+  start : start date
+  end : end date
+  alpha : alpha value of OLS regression
+  beta : beta value of OLS regression
+  sharpe_ratio : sharpe ratio
+  treynor_ratio : treynor ratio
+  annual_return : annual return
+  '''
+  firms.append(firm)
+  start_dates.append(start)
+  end_dates.append(end)
+  alphas.append(alpha)
+  betas.append(beta)
+  sharpes.append(sharpe_ratio)
+  treynors.append(treynor_ratio)
+  annuals.append(annual_return)
 
 with open('playground.csv', 'r', newline='') as csvfile:
   csv_reader = csv.reader(csvfile)
@@ -178,6 +210,26 @@ with open('playground.csv', 'r', newline='') as csvfile:
 
     sharpe_ratio = calc_sharpe(df)
     treynor_ratio = calc_treynor(df, beta)
-    yearly_return = calc_yearly_return(df)
+    annual_return = calc_annual_return(df)
 
-    print(yearly_return)
+    append_data(
+      row[COLUMNS["firm"]], row[COLUMNS["start_date"]], row[COLUMNS["end_date"]],
+      alpha, beta, sharpe_ratio, treynor_ratio, annual_return
+    )
+
+final_data = {
+  'firms': firms,
+  'start_dates': start_dates,
+  'end_dates': end_dates,
+  'alphas': alphas,
+  'betas': betas,
+  'sharpes': sharpes,
+  'treynors': treynors,
+  'annuals': annuals
+}
+
+final_df = pandas.DataFrame(final_data)
+final_df.to_csv("results.csv")
+
+
+
