@@ -152,7 +152,7 @@ def calc_annual_return(df):
   '''
   first_value = df.iloc[0]['firm']
   last_value = df.iloc[-1]['firm']
-  r_total = (last_value - first_value) - 1
+  r_total = (last_value / first_value) - 1
 
   first_date = df.iloc[0]['date']
   last_date = df.iloc[-1]['date']
