@@ -195,6 +195,7 @@ def create_prices_figure(df):
   ax = df.plot(x='date', y='firm', kind='line', linestyle='-')
   ax.set_title("Stock Prices")
   ax.set_ylabel("Price ($)")
+  plt.close()
 
 def create_returns_figure(df):
   '''
@@ -207,6 +208,7 @@ def create_returns_figure(df):
   ax = df.plot(x='date', y='r_firm', kind='line', linestyle='-')
   ax.set_title("Histogram of stock returns")
   ax.set_ylabel("Frequency")
+  plt.close()
 
 def create_returns_histogram(df):
   '''
@@ -222,6 +224,7 @@ def create_returns_histogram(df):
   ax.grid(axis='y')
   ax.set_xlabel('Returns')
   ax.set_ylabel('Frequency')
+  plt.close()
 
 def create_adjusted_market_figure(df, alpha, beta):
   '''
@@ -241,6 +244,7 @@ def create_adjusted_market_figure(df, alpha, beta):
   ax.set_ylabel("Adjusted returns")
   ax.set_xlabel("Adjusted market returns")
   fig.savefig('scatter_regression_plot.jpg')
+  plt.close()
 
 def create_figures(df, alpha, beta):
   '''
