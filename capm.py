@@ -278,10 +278,12 @@ with open('firms_dates.csv', 'r', newline='') as csvfile:
     snp_df = create_price_data_frame(get_daily_price_data(SNP_TICKER, start_date, end_date), SNP_TICKER, 'market')
     us_bonds_df = create_return_data_frame(get_daily_price_data(US_BONDS_TICKER, start_date, end_date), US_BONDS_TICKER, 'rf')
 
+    # merge the dataframes into a single dataframe with the relevant columns
     df = pandas.merge(pandas.merge(firm_df, snp_df, on='date'), us_bonds_df, on='date')
     df = df.dropna()
     df = df[['date','firm','market','rf','r_firm','r_market', 'r_rf']]
 
+    # calculate requested columns
     model = ols(formula='r_firm - r_rf ~ r_market - r_rf', data=df).fit()
     alpha = model.params['Intercept']
     beta = model.params['r_market']
